@@ -11,8 +11,8 @@ from typing import NamedTuple, Sequence
 
 #: MediaPipe decides handedness as if the image were mirrored (a selfie view),
 #: and its docs say to swap the labels when it is not. The tracker feeds it the
-#: unmirrored image (design doc 3.1), hence the swap. Unconfirmed on this
-#: camera until check V1.
+#: unmirrored image (design doc 3.1), hence the swap. Confirmed on the HP
+#: webcam, 2026-10-12 (design doc check V1): no frame came out the other way.
 MEDIAPIPE_LABEL_TO_SIDE = {"Left": "right", "Right": "left"}
 
 MIN_SCORE = 0.8
