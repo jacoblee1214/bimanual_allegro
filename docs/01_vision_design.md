@@ -113,13 +113,15 @@ MediaPipe world landmark 는 미터 단위이지만 원점이 손 중심에 고�
 bimanual_allegro/
 ├── vision/
 │   ├── hand_tracker_node.py     카메라, MediaPipe 두 손, 좌우 구분, 발행
-│   └── wrist_pose.py            PnP 와 손바닥 프레임 (ROS 와 무관한 순수 함수, 테스트 대상, 작성됨)
+│   ├── wrist_pose.py            PnP 와 손바닥 프레임 (ROS 와 무관한 순수 함수, 테스트 대상, 작성됨)
+│   └── camera.py                체커보드 보정 계산, camera_info YAML 저장과 불러오기 (작성됨)
 ├── tools/
-│   └── calibrate_camera.py      체커보드 보정, config/camera_*.yaml 저장
+│   └── calibrate_camera.py      체커보드 촬영 화면, config/camera_*.yaml 저장 (작성됨)
 ├── config/
 │   └── camera_hp_fhd.yaml       보정 결과
 ├── tests/
-│   └── test_wrist_pose.py       합성 손으로 PnP 와 손바닥 프레임 검증 (작성됨)
+│   ├── test_wrist_pose.py       합성 손으로 PnP 와 손바닥 프레임 검증 (작성됨)
+│   └── test_camera.py           합성 체커보드로 보정 계산과 YAML 검증 (작성됨)
 └── requirements.txt
 ```
 
