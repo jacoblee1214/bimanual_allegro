@@ -1,0 +1,29 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# colcon build artifacts and ROS logs
+build/
+install/
+log/
+*.log
+
+# Environments
+.env
+.venv/
+env/
+venv/
+
+# Recorded datasets
+data/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Scratch
+scratch/
+
+# Company logo: kept local (trademark)
+assets/wonik_logo.png
