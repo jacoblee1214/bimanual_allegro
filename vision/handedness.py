@@ -1,9 +1,13 @@
 """
 handedness.py — which detected hand is the operator's left and which the right.
 
-docs/01_vision_design.md, 3.2. Kept simple on purpose: labels and one position
-rule, no tracking across frames. Check V2 measures how often that is wrong and
-decides whether tracking is needed.
+docs/01_vision_design.md, 3.2. Labels and one position rule, no tracking
+across frames. Check V2 (2026-10-12) found no need for more: with both hands
+inside the middle 60% of the image, no label came out wrong, palms or backs to
+the camera, and the labels kept the sides right through crossings, where
+position alone would not. Near the image edges a third of the labels were
+wrong, at high scores, so that is a camera placement problem, not one this
+rule can fix.
 """
 from __future__ import annotations
 
