@@ -13,3 +13,16 @@ xArm7 두 대와 Allegro Hand V6 좌우 한 쌍으로 구성된 양팔 로봇 �
 3. 팔 EEF 추종: 손목 자세에서 xArm7 IK 로
 4. 팔과 손 결합, 데이터 기록
 5. VLM
+
+## 지금 있는 것
+
+1단계 비전 레이어를 만드는 중입니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
+
+```bash
+# 환경: ROS 2 Jazzy, --system-site-packages 로 만든 venv 에 requirements.txt
+source /opt/ros/jazzy/setup.bash
+python -m pytest                                        # 하드웨어 없이 돌아갑니다
+
+tools/calibrate_camera.py                               # 카메라 보정 (체커보드)
+vision/hand_tracker_node.py --source 0 --camera-info config/camera_<name>.yaml
+```

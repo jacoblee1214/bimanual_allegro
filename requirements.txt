@@ -1,0 +1,12 @@
+# Pip dependencies, for a venv created with --system-site-packages so that
+# rclpy and cv_bridge come from the apt ROS 2 Jazzy install.
+#
+# Same pins as allegro_vision_teleop's .venv, where the tests have run so far:
+# mediapipe 0.10.x needs numpy 1.x, and a pip numpy 2.x breaks rclpy's C
+# extensions.
+numpy==1.26.4
+mediapipe==0.10.14
+opencv-contrib-python==4.10.0.84
+scipy==1.13.1
+PyYAML==6.0.1
+pytest==7.4.4
