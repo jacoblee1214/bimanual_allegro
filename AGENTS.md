@@ -36,6 +36,7 @@
 - 팔(pinocchio, xArm SDK, numpy 2.x): `.venv-arm/bin/python`
 - 테스트는 두 환경에서 각각 돌립니다. pinocchio 가 필요한 테스트는 `pytestmark = pytest.mark.skipif(...)` 로 건너뜁니다. 모듈 수준의 `pytest.importorskip` 은 쓰지 않습니다. ROS 의 launch_testing pytest 플러그인이 이를 전체 실행 건너뛰기로 바꿔, 다른 환경의 테스트가 하나도 돌지 않습니다(`tests/test_arm_ik.py` 참고).
 - 패키지를 설치하지 않습니다. 필요하면 보고서에 적습니다.
+- 뮤테이션 확인(코드를 일부러 바꿔 테스트가 잡는지 보는 것)을 할 때는 `python -B` 로 돌리거나 끝난 뒤 `__pycache__` 를 지웁니다. 바꾼 줄과 원래 줄의 길이가 같고 1초 안에 되돌리면, 파이썬이 수정 시각과 크기만 보고 바꾼 버전의 캐시를 계속 씁니다(M4 검증 때 실제로 겪음).
 
 ## 금지
 
