@@ -4,9 +4,11 @@ bench_tracker.py — design doc check V5: how fast, and at what cost, on recorde
 
 No camera or ROS: replays the V2 clips (data/clips, from
 tools/check_label_stability.py) through MediaPipe and the wrist PnP, once per
-landmark model, and reports
+detector (legacy full and lite models on the CPU, the Tasks API on the GPU if
+its model is fetched), and reports
 
-  * time per frame, MediaPipe and PnP separately;
+  * time per frame, detection (MediaPipe, colour conversion included) and PnP
+    separately, the first five frames left out as warm-up;
   * wrong labels, against the left-right order of uncrossed clips;
   * how often the palm normal points the way the clip says the palm faces;
   * jitter: median second difference of the right wrist and index tip
@@ -28,13 +30,13 @@ import time
 from pathlib import Path
 
 import cv2
-import mediapipe as mp
 import numpy as np
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
 from vision import camera  # noqa: E402
-from vision.handedness import MEDIAPIPE_LABEL_TO_SIDE, Detection, assign_sides  # noqa: E402
+from vision.hand_tracker import TASKS_MODEL, HandTracker  # noqa: E402
+from vision.handedness import Detection, assign_sides  # noqa: E402
 from vision.wrist_pose import solve_wrist_pose  # noqa: E402
 
 #: Which way the palms face in each clip: True towards the camera, None unknown.
@@ -48,10 +50,13 @@ def second_diff_mm(runs: list[list[np.ndarray]]) -> float:
     return float(np.median(per_run)) * 1000 if per_run else float("nan")
 
 
-def bench(path: Path, complexity: int, k: np.ndarray, dist: np.ndarray, facing, crossed: bool) -> dict:
+DETECTORS = {"full": dict(model_complexity=1), "lite": dict(model_complexity=0), "gpu": dict(gpu=True)}
+
+
+def bench(path: Path, detector: str, k: np.ndarray, dist: np.ndarray, facing, crossed: bool) -> dict:
     cap = cv2.VideoCapture(str(path))
-    hands = mp.solutions.hands.Hands(static_image_mode=False, max_num_hands=2, model_complexity=complexity,
-                                     min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    tracker = HandTracker(**DETECTORS[detector])
+    label_to_side = tracker.label_to_side
     t_mp, t_pnp, wrong, labelled, normal_ok, reproj = [], [], 0, 0, [], []
     wrist_runs, tip_runs, wrist_run, tip_run = [], [], [], []
     frames = two = 0
@@ -62,21 +67,18 @@ def bench(path: Path, complexity: int, k: np.ndarray, dist: np.ndarray, facing, 
         frames += 1
         h, w = frame.shape[:2]
         t0 = time.perf_counter()
-        res = hands.process(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+        raw = tracker.detect(frame, (frames - 1) / 30.0)
         t1 = time.perf_counter()
-        image, world, labels = res.multi_hand_landmarks or [], res.multi_hand_world_landmarks or [], res.multi_handedness or []
-        dets = [Detection(c.classification[0].label, c.classification[0].score, lm.landmark[0].x)
-                for lm, c in zip(image, labels)]
+        dets = [Detection(r.label, r.score, r.image_landmarks[0, 0]) for r in raw]
         if len(dets) == 2:
             two += 1
             if not crossed:
                 for truth, d in zip(("right", "left"), sorted(dets, key=lambda d: d.wrist_x)):
-                    wrong += MEDIAPIPE_LABEL_TO_SIDE[d.label] != truth
+                    wrong += label_to_side[d.label] != truth
                     labelled += 1
         right = None
-        for side, i in assign_sides(dets).items():
-            wpts = np.array([[p.x, p.y, p.z] for p in world[i].landmark])
-            ipts = np.array([[p.x, p.y, p.z] for p in image[i].landmark])
+        for side, i in assign_sides(dets, label_to_side=label_to_side).items():
+            wpts, ipts = raw[i].world_landmarks, raw[i].image_landmarks
             pose = solve_wrist_pose(wpts, ipts, (w, h), k, side, dist)
             if pose is None:
                 continue
@@ -96,7 +98,8 @@ def bench(path: Path, complexity: int, k: np.ndarray, dist: np.ndarray, facing, 
             wrist_run, tip_run = [], []
     wrist_runs.append(wrist_run)
     tip_runs.append(tip_run)
-    hands.close()
+    tracker.close()
+    t_mp, t_pnp = t_mp[5:], t_pnp[5:]
     total = np.array(t_mp) + np.array(t_pnp)
     return {
         "frames": frames, "two": two,
@@ -129,8 +132,10 @@ def main() -> None:
         if not path.exists():
             print(f"[!] {path} missing, skipped")
             continue
-        for complexity, model in ((1, "full"), (0, "lite")):
-            r = bench(path, complexity, k, dist, FACING.get(name), name in CROSSED)
+        for model in DETECTORS:
+            if model == "gpu" and not TASKS_MODEL.exists():
+                continue
+            r = bench(path, model, k, dist, FACING.get(name), name in CROSSED)
             normal = "-" if r["normal"] is None else f"{r['normal']:.1%}"
             print(f"{name:6s} {model:5s} | {r['two']:3d}/{r['frames']:3d} | {r['mp_ms']:5.1f} | {r['pnp_ms']:5.2f}  | "
                   f"{r['fps']:4.0f} | {r['p95_ms']:6.1f} | {r['wrong'] or '-':>12s} | {normal:>14s} | "

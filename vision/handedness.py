@@ -19,6 +19,12 @@ from typing import NamedTuple, Sequence
 #: webcam, 2026-10-12 (design doc check V1): no frame came out the other way.
 MEDIAPIPE_LABEL_TO_SIDE = {"Left": "right", "Right": "left"}
 
+#: MediaPipe's newer Tasks API (HandLandmarker) labels the other way round:
+#: on the same unmirrored clips its labels are the operator's actual sides,
+#: every one of 530 two-hand detections (design doc, V5 GPU check). Use the
+#: map that goes with the API the labels came from.
+TASKS_LABEL_TO_SIDE = {"Left": "left", "Right": "right"}
+
 MIN_SCORE = 0.8
 
 
@@ -28,7 +34,11 @@ class Detection(NamedTuple):
     wrist_x: float  # landmark 0's x over image width, in the unmirrored image
 
 
-def assign_sides(detections: Sequence[Detection], min_score: float = MIN_SCORE) -> dict[str, int]:
+def assign_sides(
+    detections: Sequence[Detection],
+    min_score: float = MIN_SCORE,
+    label_to_side: dict[str, str] = MEDIAPIPE_LABEL_TO_SIDE,
+) -> dict[str, int]:
     """{"left": i, "right": j} into `detections`, for the hands that can be told apart.
 
     A side with no confident hand is left out, so its topic goes quiet rather
@@ -44,8 +54,8 @@ def assign_sides(detections: Sequence[Detection], min_score: float = MIN_SCORE) 
 
     if len(kept) == 2:
         a, b = kept
-        side_a = MEDIAPIPE_LABEL_TO_SIDE[detections[a].label]
-        side_b = MEDIAPIPE_LABEL_TO_SIDE[detections[b].label]
+        side_a = label_to_side[detections[a].label]
+        side_b = label_to_side[detections[b].label]
         if side_a != side_b:
             return {side_a: a, side_b: b}
         right, left = sorted(kept, key=lambda i: detections[i].wrist_x)
@@ -53,6 +63,6 @@ def assign_sides(detections: Sequence[Detection], min_score: float = MIN_SCORE) 
 
     if len(kept) == 1:
         i = kept[0]
-        return {MEDIAPIPE_LABEL_TO_SIDE[detections[i].label]: i}
+        return {label_to_side[detections[i].label]: i}
 
     return {}

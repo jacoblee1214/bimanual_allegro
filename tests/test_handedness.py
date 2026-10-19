@@ -1,5 +1,5 @@
 """The left/right rules of vision/handedness.py (design doc 3.2)."""
-from vision.handedness import Detection, assign_sides
+from vision.handedness import TASKS_LABEL_TO_SIDE, Detection, assign_sides
 
 # Unmirrored image: the operator's right hand shows on the left (small x), and
 # MediaPipe labels it "Left".
@@ -35,3 +35,9 @@ def test_labels_win_over_position_when_hands_cross():
 
 def test_nothing_detected():
     assert assign_sides([]) == {}
+
+
+def test_tasks_api_labels_are_not_swapped():
+    right = Detection("Right", 0.95, 0.3)
+    left = Detection("Left", 0.95, 0.7)
+    assert assign_sides([right, left], label_to_side=TASKS_LABEL_TO_SIDE) == {"right": 0, "left": 1}

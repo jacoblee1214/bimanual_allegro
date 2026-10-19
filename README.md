@@ -24,5 +24,16 @@ source /opt/ros/jazzy/setup.bash
 python -m pytest                                        # 하드웨어 없이 돌아갑니다
 
 tools/calibrate_camera.py                               # 카메라 보정 (체커보드)
-vision/hand_tracker_node.py --source 0 --camera-info config/camera_<name>.yaml
+vision/hand_tracker_node.py --source 0 --camera-info config/camera_<name>.yaml --gpu
 ```
+
+`--gpu` 는 MediaPipe 의 Tasks API 를 GPU 에서 돌립니다. 두 손 기준으로 한 프레임에 4 ms 가 걸리고, 빼면 CPU 에서 30 ms 가 걸립니다(설계안 V5). 모델 파일은 git 에 없으므로 한 번 받아 둡니다.
+
+```bash
+mkdir -p data/models && curl -fL -o data/models/hand_landmarker.task \
+  https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
+sha256sum data/models/hand_landmarker.task
+# fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1
+```
+
+노트북처럼 화면이 내장 그래픽에 연결된 PC 에서는, 따로 지정하지 않으면 MediaPipe 가 내장 그래픽을 잡아 오히려 CPU 보다 5배 느려집니다. `--gpu` 를 쓰면 노드가 NVIDIA GPU 를 쓰도록 환경 변수를 알아서 설정합니다.

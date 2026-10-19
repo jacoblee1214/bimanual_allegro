@@ -15,7 +15,7 @@ All stamps are the time the frame was read.
 A clip can stand in for the camera; it is replayed at its own frame rate.
 
 Usage:
-    vision/hand_tracker_node.py --source 0 --camera-info config/camera_hp_fhd.yaml
+    vision/hand_tracker_node.py --source 0 --camera-info config/camera_hp_fhd.yaml --gpu
     vision/hand_tracker_node.py --source data/clips/v2_palm2.avi --camera-info <yaml>
 """
 from __future__ import annotations
@@ -99,8 +99,11 @@ def main() -> None:
     p.add_argument("--camera-info", type=Path, help="intrinsics YAML; without it no wrist pose is published")
     p.add_argument("--size", type=pair, default=(640, 480),
                    help="camera capture size; ignored when --camera-info gives one")
-    p.add_argument("--lite", action="store_true",
-                   help="MediaPipe's lite landmark model: twice as fast, more jitter (design doc, V5)")
+    model = p.add_mutually_exclusive_group()
+    model.add_argument("--lite", action="store_true",
+                       help="MediaPipe's lite landmark model: twice as fast, more jitter (design doc, V5)")
+    model.add_argument("--gpu", action="store_true",
+                       help="MediaPipe's Tasks API on the GPU: 4 ms a frame instead of 30 (design doc, V5)")
     args, ros_args = p.parse_known_args()
 
     calibration = camera.load(args.camera_info) if args.camera_info else None
@@ -112,7 +115,7 @@ def main() -> None:
     log = node.get_logger()
     if calibration is None:
         log.warn("no --camera-info: publishing landmarks only, no wrist pose")
-    tracker = HandTracker(calibration, model_complexity=0 if args.lite else 1)
+    tracker = HandTracker(calibration, model_complexity=0 if args.lite else 1, gpu=args.gpu)
 
     period = 1.0 / (cap.get(cv2.CAP_PROP_FPS) or 30.0) if is_clip else 0.0
     t0 = time.monotonic()
