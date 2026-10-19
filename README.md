@@ -16,7 +16,7 @@ xArm7 두 대와 Allegro Hand V6 좌우 한 쌍으로 구성된 양팔 로봇 �
 
 ## 지금 있는 것
 
-1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 3단계 팔 추종은 양팔+양손 시뮬레이션까지 연결했고, 실물에서는 왼팔이 웹캠에 보이는 작업자 손을 따라가는 것까지 확인했습니다([R1](docs/results/r1_left_joint_nudge.md), [R2](docs/results/r2_left_wrist_follow.md))([설계 v2](docs/03_arm_follow_design_v2.md), 결과 [M1](docs/results/m1_arm_ik.md), [M2 미분 IK](docs/results/m2_diff_ik.md), [M2 손 크기 배율 실험](docs/results/m2_scale_jitter.md)). R&D 후보 조사는 [docs/04_rnd_candidates_survey.md](docs/04_rnd_candidates_survey.md), 에이전트 작업 규칙은 [AGENTS.md](AGENTS.md) 에 있습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
+1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 3단계 팔 추종은 양팔+양손 시뮬레이션까지 연결했고, 실물에서는 왼팔이 웹캠에 보이는 작업자 손을 따라가는 것까지 확인했습니다([R1](docs/results/r1_left_joint_nudge.md), [R2](docs/results/r2_left_wrist_follow.md))([설계 v2](docs/03_arm_follow_design_v2.md), 결과 [M1](docs/results/m1_arm_ik.md), [M2 미분 IK](docs/results/m2_diff_ik.md), [M2 손 크기 배율 실험](docs/results/m2_scale_jitter.md)). 에고 시점 RealSense 카메라 구성은 [docs/05_ego_camera.md](docs/05_ego_camera.md) 에 있습니다. R&D 후보 조사는 [docs/04_rnd_candidates_survey.md](docs/04_rnd_candidates_survey.md), 에이전트 작업 규칙은 [AGENTS.md](AGENTS.md) 에 있습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
 
 ```bash
 # 환경: ROS 2 Jazzy, --system-site-packages 로 만든 venv 에 requirements.txt

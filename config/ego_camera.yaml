@@ -1,0 +1,31 @@
+# Written by tools/measure_camera_tilt.py; re-run whenever the camera is moved.
+device: RealSense D455
+measured: 2026-10-19 17:12
+pitch_down_deg: 44.29
+roll_deg: -4.86
+gravity_m_s2: 9.731
+imu_samples: 48
+R_CB:
+- - -0.059151
+  - -0.695836
+  - 0.715761
+- - -0.996406
+  - 0.084702
+  - -0.0
+- - -0.060626
+  - -0.713189
+  - -0.698345
+color:
+  width: 640
+  height: 480
+  fx: 383.65777587890625
+  fy: 383.2544860839844
+  cx: 321.3528747558594
+  cy: 245.00636291503906
+  model: distortion.inverse_brown_conrady
+  coeffs:
+  - -0.05425292253494263
+  - 0.06627000868320465
+  - -0.0003004936734214425
+  - 0.0012282963143661618
+  - -0.02110980451107025
