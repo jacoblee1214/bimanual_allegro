@@ -16,7 +16,7 @@ xArm7 두 대와 Allegro Hand V6 좌우 한 쌍으로 구성된 양팔 로봇 �
 
 ## 지금 있는 것
 
-1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
+1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 3단계 팔 추종은 IK 를 녹화 궤적으로 오프라인 평가한 단계입니다([설계](docs/03_arm_follow_design.md), [결과](docs/results/m1_arm_ik.md)). R&D 후보 조사는 [docs/04_rnd_candidates_survey.md](docs/04_rnd_candidates_survey.md), 에이전트 작업 규칙은 [AGENTS.md](AGENTS.md) 에 있습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
 
 ```bash
 # 환경: ROS 2 Jazzy, --system-site-packages 로 만든 venv 에 requirements.txt
@@ -50,3 +50,18 @@ ros2 launch launch/bimanual_sim.launch.py source:=data/clips/v2_cross.avi loop:=
 ```
 
 손 저장소가 다른 곳에 있으면 `hand_repo:=<경로>` 나 `ALLEGRO_TELEOP_DIR` 로 알려 줍니다.
+
+### 팔 (3단계)
+
+팔 코드는 pinocchio 와 xArm SDK 를 쓰는 별도 환경에서 돕니다. 비전 환경과 numpy 버전이 달라서입니다.
+
+```bash
+python3 -m venv --system-site-packages .venv-arm
+.venv-arm/bin/pip install pin==4.1.0 xarm-python-sdk==1.18.4 "scipy>=1.14"
+# xArm7 URDF: xarm_ros2 (jazzy) 의 xarm_description 을 빌드한 뒤
+xacro $(ros2 pkg prefix xarm_description)/share/xarm_description/urdf/xarm_device.urdf.xacro dof:=7 robot_type:=xarm > data/models/xarm7.urdf
+.venv-arm/bin/python tools/eval_arm_ik.py              # 녹화 궤적으로 IK 평가
+.venv-arm/bin/python tools/check_xarm.py <ip>           # 팔 상태 읽기만 (움직이지 않음)
+```
+
+로봇 IP 는 `config/robots.local.yaml` 에 둡니다. git 이 무시하는 파일입니다.

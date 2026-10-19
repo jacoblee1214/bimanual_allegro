@@ -1,0 +1,14 @@
+# Where the two xArm7 bases sit in `world`, for simulation and IK checks.
+# User, 2026-10-19: bases about 1.5 m apart (not measured precisely), both facing the
+# same way (+x, forward) with the same axes -- not mirrored. Re-measure before real use.
+world_frame: world
+arms:
+  left:
+    base_xyz: [0.0, 0.75, 0.0]
+    base_rpy: [0.0, 0.0, 0.0]
+  right:
+    base_xyz: [0.0, -0.75, 0.0]
+    base_rpy: [0.0, 0.0, 0.0]
+# Flange (link_eef) -> Allegro base_link: not known yet, identity as a placeholder.
+hand_mount_xyz: [0.0, 0.0, 0.0]
+hand_mount_rpy: [0.0, 0.0, 0.0]

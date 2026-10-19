@@ -12,6 +12,7 @@ log/
 # Environments
 .env
 .venv/
+.venv-*/
 env/
 venv/
 
@@ -27,3 +28,6 @@ scratch/
 
 # Company logo: kept local (trademark)
 assets/wonik_logo.png
+
+# Machine-specific (robot IPs etc.): never in the public repository
+*.local.yaml
