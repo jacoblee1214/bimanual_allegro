@@ -16,7 +16,7 @@ xArm7 두 대와 Allegro Hand V6 좌우 한 쌍으로 구성된 양팔 로봇 �
 
 ## 지금 있는 것
 
-1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 3단계 팔 추종은 IK 를 녹화 궤적으로 오프라인 평가한 단계입니다([설계](docs/03_arm_follow_design.md), [결과](docs/results/m1_arm_ik.md)). R&D 후보 조사는 [docs/04_rnd_candidates_survey.md](docs/04_rnd_candidates_survey.md), 에이전트 작업 규칙은 [AGENTS.md](AGENTS.md) 에 있습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
+1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 3단계 팔 추종은 양팔+양손 시뮬레이션까지 연결했고, 실물은 dry run 까지 확인했습니다([설계 v2](docs/03_arm_follow_design_v2.md), 결과 [M1](docs/results/m1_arm_ik.md), [M2 미분 IK](docs/results/m2_diff_ik.md), [M2 손 크기 배율 실험](docs/results/m2_scale_jitter.md)). R&D 후보 조사는 [docs/04_rnd_candidates_survey.md](docs/04_rnd_candidates_survey.md), 에이전트 작업 규칙은 [AGENTS.md](AGENTS.md) 에 있습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
 
 ```bash
 # 환경: ROS 2 Jazzy, --system-site-packages 로 만든 venv 에 requirements.txt
@@ -63,5 +63,14 @@ xacro $(ros2 pkg prefix xarm_description)/share/xarm_description/urdf/xarm_devic
 .venv-arm/bin/python tools/eval_arm_ik.py              # 녹화 궤적으로 IK 평가
 .venv-arm/bin/python tools/check_xarm.py <ip>           # 팔 상태 읽기만 (움직이지 않음)
 ```
+
+양팔+양손 시뮬레이션 (xArm 메시를 위해 `~/xarm_ws` 도 source):
+
+```bash
+source ~/xarm_ws/install/setup.bash
+ros2 launch launch/bimanual_sim_v2.launch.py source:=data/clips/v2_palm2.avi loop:=true gpu:=true
+```
+
+실물 브리지(`arm/xarm_bridge_node.py`)는 `--enable` 없이는 명령을 보내지 않습니다. 실물 시험 계획은 설계 v2 4장에 있습니다.
 
 로봇 IP 는 `config/robots.local.yaml` 에 둡니다. git 이 무시하는 파일입니다.
