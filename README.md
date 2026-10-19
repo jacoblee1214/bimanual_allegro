@@ -16,7 +16,7 @@ xArm7 두 대와 Allegro Hand V6 좌우 한 쌍으로 구성된 양팔 로봇 �
 
 ## 지금 있는 것
 
-1단계 비전 레이어를 만드는 중입니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
+1단계 비전 레이어가 있고, 2단계 양손 텔레옵은 시뮬레이션까지 연결했습니다. 설계와 측정 기록은 [docs/01_vision_design.md](docs/01_vision_design.md), 선행 연구 조사는 [docs/survey_vision_hand_teleop.md](docs/survey_vision_hand_teleop.md) 에 있습니다.
 
 ```bash
 # 환경: ROS 2 Jazzy, --system-site-packages 로 만든 venv 에 requirements.txt
@@ -37,3 +37,16 @@ sha256sum data/models/hand_landmarker.task
 ```
 
 노트북처럼 화면이 내장 그래픽에 연결된 PC 에서는, 따로 지정하지 않으면 MediaPipe 가 내장 그래픽을 잡아 오히려 CPU 보다 5배 느려집니다. `--gpu` 를 쓰면 노드가 NVIDIA GPU 를 쓰도록 환경 변수를 알아서 설정합니다.
+
+### 양손 시뮬레이션 (2단계)
+
+로봇 없이 두 손을 RViz 에서 움직여 봅니다. 손 저장소([allegro_vision_teleop](https://github.com/jacoblee1214/allegro_vision_teleop))와 원익 드라이버 워크스페이스가 필요합니다. 구성과 확인 결과는 [docs/02_bimanual_hand_sim.md](docs/02_bimanual_hand_sim.md) 에 있습니다.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source ~/v6f_manuse_teleoperation/install/setup.bash
+ros2 launch launch/bimanual_sim.launch.py source:=0 gpu:=true          # 카메라
+ros2 launch launch/bimanual_sim.launch.py source:=data/clips/v2_cross.avi loop:=true gpu:=true
+```
+
+손 저장소가 다른 곳에 있으면 `hand_repo:=<경로>` 나 `ALLEGRO_TELEOP_DIR` 로 알려 줍니다.

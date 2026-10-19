@@ -12,7 +12,8 @@ and every frame:
 
 All stamps are the time the frame was read.
 
-A clip can stand in for the camera; it is replayed at its own frame rate.
+A clip can stand in for the camera; it is replayed at its own frame rate, once or with
+--loop over and over (the simulation launch uses that).
 
 Usage:
     vision/hand_tracker_node.py --source 0 --camera-info config/camera_hp_fhd.yaml --gpu
@@ -104,6 +105,7 @@ def main() -> None:
                        help="MediaPipe's lite landmark model: twice as fast, more jitter (design doc, V5)")
     model.add_argument("--gpu", action="store_true",
                        help="MediaPipe's Tasks API on the GPU: 4 ms a frame instead of 30 (design doc, V5)")
+    p.add_argument("--loop", action="store_true", help="replay a clip from the start when it ends")
     args, ros_args = p.parse_known_args()
 
     calibration = camera.load(args.camera_info) if args.camera_info else None
@@ -124,6 +126,9 @@ def main() -> None:
         while rclpy.ok():
             ok, frame = cap.read()
             if not ok:
+                if is_clip and args.loop:
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+                    continue
                 if is_clip:
                     log.info("end of clip")
                     break
