@@ -38,6 +38,15 @@ sha256sum data/models/hand_landmarker.task
 
 노트북처럼 화면이 내장 그래픽에 연결된 PC 에서는, 따로 지정하지 않으면 MediaPipe 가 내장 그래픽을 잡아 오히려 CPU 보다 5배 느려집니다. `--gpu` 를 쓰면 노드가 NVIDIA GPU 를 쓰도록 환경 변수를 알아서 설정합니다.
 
+### 시연
+
+카메라(RealSense 또는 아무 웹캠)를 꽂고 실행하면, 화면 속 양팔 + 양손 로봇이 카메라 앞 사람의 두 손을 따라갑니다. `--real` 을 주면 실물 xArm7 두 대도 따라갑니다(시작 전에 확인을 묻습니다). 자세한 내용은 [docs/07_demo.md](docs/07_demo.md) 에 있습니다.
+
+```bash
+demo/run_demo.sh            # 시뮬레이션만
+demo/run_demo.sh --real     # 실물 팔도 60 s
+```
+
 ### 양손 시뮬레이션 (2단계)
 
 로봇 없이 두 손을 RViz 에서 움직여 봅니다. 손 저장소([allegro_vision_teleop](https://github.com/jacoblee1214/allegro_vision_teleop))와 원익 드라이버 워크스페이스가 필요합니다. 구성과 확인 결과는 [docs/02_bimanual_hand_sim.md](docs/02_bimanual_hand_sim.md) 에 있습니다.

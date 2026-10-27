@@ -1,0 +1,16 @@
+# Settings for launch/demo.launch.py (docs/07_demo.md).
+
+# Simulation only: where each arm starts, rad. The real arms' start pose on 2026-10-20
+# (R6), so the simulated arms look like the real ones.
+sim_q0:
+  left:  [5.031, 1.228, -4.317, 1.099, 3.717, 0.908, -1.751]
+  right: [-1.967, 1.46, -3.639, 0.44, 4.336, 0.967, -1.805]
+
+# arm/arm_follow_node_v6.py options. Real arms: R5/R6's, which passed (docs/results/r5_*).
+# Simulation: looser, so visitors see the arms move.
+follow:
+  sim:  {max_joint_speed: 1.0, radius: 0.15, scale: 1.0, joint_box: 0.6}
+  real: {max_joint_speed: 0.3, radius: 0.07, scale: 0.5, joint_box: 0.3}
+
+# arm/xarm_bridge_node_v3.py with real:=true: the same box and speed cap as the follower.
+bridge: {max_joint_speed: 0.3, max_excursion: 0.3}
