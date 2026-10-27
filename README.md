@@ -40,11 +40,11 @@ sha256sum data/models/hand_landmarker.task
 
 ### 시연
 
-카메라(RealSense 또는 아무 웹캠)를 꽂고 실행하면, 화면 속 양팔 + 양손 로봇이 카메라 앞 사람의 두 손을 따라갑니다. `--real` 을 주면 실물 xArm7 두 대도 따라갑니다(시작 전에 확인을 묻습니다). 자세한 내용은 [docs/07_demo.md](docs/07_demo.md) 에 있습니다.
+카메라(RealSense 또는 아무 웹캠)를 꽂고 실행하면, 화면 속 양팔 + 양손 로봇이 카메라 앞 사람의 두 손을 따라갑니다. `--real` 을 주면 실물 xArm7 두 대도 따라갑니다(시작 전에 확인을 묻습니다). 자세한 내용은 [docs/07_demo_v2.md](docs/07_demo_v2.md) 에 있습니다.
 
 ```bash
-demo/run_demo.sh            # 시뮬레이션만
-demo/run_demo.sh --real     # 실물 팔도 60 s
+demo/run_demo_v2.sh            # 시뮬레이션만
+demo/run_demo_v2.sh --real     # 실물 팔도 60 s
 ```
 
 ### 양손 시뮬레이션 (2단계)
