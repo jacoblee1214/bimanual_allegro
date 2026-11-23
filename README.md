@@ -6,6 +6,8 @@ xArm7 두 대와 Allegro Hand V6 좌우 한 쌍으로 구성된 양팔 로봇 �
 
 손 한 쪽의 비전 텔레오퍼레이션은 [allegro_vision_teleop](https://github.com/jacoblee1214/allegro_vision_teleop) 에서 다룹니다. 이 저장소는 그 위에 양손, 팔, 데이터 기록, VLM 을 조립합니다.
 
+지금 상태와 다음 할 일은 [docs/08_handoff_claude.md](docs/08_handoff_claude.md) 에 정리되어 있습니다.
+
 ## 진행 순서
 
 1. 비전: 두 손 추적, 좌우 구분, 손목 자세 발행
