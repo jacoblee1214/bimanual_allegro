@@ -74,10 +74,13 @@ def _setup(context):
         x, y, z = (str(v) for v in base["base_xyz"])
         roll, pitch, yaw = (str(v) for v in base["base_rpy"])
         hand_real = side in real_hands
-        follow_cmd = [arm_python, str(REPO / "arm" / "arm_follow_node_v6.py"), "--position-only",
+        follow_cmd = [arm_python, str(REPO / "arm" / "arm_follow_node_v7.py"), "--position-only",
                       "--max-joint-speed", str(follow["max_joint_speed"]), "--radius", str(follow["radius"]),
                       "--scale", str(follow["scale"]), "--joint-box", str(follow["joint_box"]),
                       "--camera", arg["camera"]]
+        if "hand_gap" in cfg:       # keep each flange hand_gap / 2 from the middle between the bases
+            inner = (cfg["base_distance"] - cfg["hand_gap"]) / 2.0
+            follow_cmd += ["--y-range", *(("-1.0", str(inner)) if side == "right" else (str(-inner), "1.0"))]
         follow_cmd += ["--q0-from-robot"] if real_arms else ["--q0", *(str(v) for v in cfg["home_q"][side])]
         actions += [
             Node(package="tf2_ros", executable="static_transform_publisher", name=f"world_to_{side}_arm",

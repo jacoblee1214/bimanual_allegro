@@ -81,3 +81,49 @@ followed. These numbers are the IK and the cap only; camera and robot latency co
     tools/run_teleop_real_v2.sh s2 --config $C --arms real                      # 1:1, 15 cm, 0.3 rad/s
     tools/run_teleop_real_v2.sh s3 --config $C --arms real --arm-speed 0.6
     tools/run_teleop_real_v2.sh s4 --config $C --arms real --arm-speed 1.0 --hands both
+
+## Real runs at 15 cm (2026-11-26)
+
+| run | settings | result |
+|---|---|---|
+| s5 | 1:1, 15 cm, 0.3 rad/s, both hands | no error; EEF at the cap 19 to 23 % of the time; the hands moved 58 to 62 cm vertically; hand -> measured EEF lag 0.16 to 0.36 s (rough, correlation 0.3 to 0.6); right bridge speed-limited on 40 % of ticks; left hand tracked 75 % of the time, right 91 % |
+| s6 | the same at 0.6 rad/s | no error; bridge speed-limited on 6.5 % of ticks; tracking poor: left 287 wrist samples in 60 s, right hand 0.23 m from the camera with 32 % held |
+
+## The hands are as far apart as the bases: start turned inwards
+
+Each arm follows its own hand's displacement from its own start. From the home pose the
+flanges are as far apart as the bases, 0.98 m (between the base cables, user), while the
+operator's hands are 0.3 to 0.4 m apart, and the camera sees about 0.67 m across at 0.4 m.
+The robot's hands can then never meet, and the operator cannot spread their hands that far
+inside the picture.
+
+`tools/find_center_start.py` looks for a start with the flanges 0.3 or 0.4 m apart, at the
+home pose's flange orientation (data/results/center_start.json). With x 0.35 m every
+direction is reachable at 25 cm (worst 4 to 6 mm); with x 0.45 m two to four directions are
+missed at 25 cm. Chosen: flanges 0.40 m apart, x 0.35, z 0.35 m:
+
+| | left | right |
+|---|---|---|
+| joints, deg | -20.3, -4.0, -21.9, 48.3, 120.7, 50.3, 41.7 | 4.0, -4.7, 37.8, 48.4, 239.4, 49.1, 139.6 |
+| smallest singular value at the pose | 0.198 | 0.166 |
+| 20 cm: missed / worst error | 0 of 26 / 1.3 mm | 0 of 26 / 1.6 mm |
+| 20 cm: largest joint offset / margin to limits | 0.82 / 0.42 rad | 0.85 / 0.44 rad |
+| 20 cm: EEF lowest z | 0.15 m | 0.15 m |
+
+The joint-space move from the home pose keeps the flange between z 0.336 and 0.356 m and each
+arm on its own side (world y 0.20 to 0.49 m and -0.49 to -0.20 m).
+
+`config/teleop_center.yaml`: that start, 1:1, radius 20 cm, joint box 0.9 rad, 0.3 rad/s.
+`arm/arm_follow_node_v7.py --y-range` keeps each flange `hand_gap / 2` (0.11 m) from the middle,
+so the flanges stay at least 0.22 m apart. The 0.22 m is a guess, not measured on the hands.
+
+Replay of `ego_depth_work` from that start (simulated, domain 77): EEF travel 192 / 200 mm,
+flange distance 0.400 m at the start, 0.307 m at the least, joints within 0.61 rad.
+
+Not checked: the pose and the move on the real arms; whether the forearms or the hands'
+cables clear each other and the table at x 0.35 m; whether 0.22 m is enough for two hands.
+
+    C=config/teleop_center.yaml
+    tools/run_teleop_real_v2.sh c1 --config $C                    # offers the move to the start; arms read only
+    tools/run_teleop_real_v2.sh c2 --config $C --arms real
+    tools/run_teleop_real_v2.sh c3 --config $C --arms real --hands both --arm-speed 0.6

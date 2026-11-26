@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-home_arms.py — bring both xArm7 arms back to the home pose (config/teleop_real.yaml home_q).
+home_arms.py — bring both xArm7 arms to a config's start pose (home_q; default config/teleop_real.yaml).
 
 After a teleop run the arms stand where the run ended, and tools/run_teleop_real_v2.sh only
 starts from the home pose. This reads each arm (tools/check_pose_v2.py) and, with --enable,
 calls tools/move_joints.py from the pose it just read to the home pose: 10 deg/s, one arm
 after the other, left first. It refuses if an arm reports an error or is more than
---max-travel degrees from home in any joint (default 60): that is not "a run just ended".
+--max-travel degrees from home in any joint (default 90): that is not "a run just ended".
 Without --enable it prints the plan and moves nothing.
 
 Usage (with .venv-arm):
-    tools/home_arms.py [--enable]
+    tools/home_arms.py [--config config/teleop_center.yaml] [--enable]
 """
 from __future__ import annotations
 
@@ -29,9 +29,10 @@ REPO = Path(__file__).resolve().parents[1]
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--enable", action="store_true", help="actually move (default: print the plan)")
-    p.add_argument("--max-travel", type=float, default=60.0, help="deg; refuse beyond this (default 60)")
+    p.add_argument("--max-travel", type=float, default=90.0, help="deg; refuse beyond this (default 90)")
+    p.add_argument("--config", type=Path, default=REPO / "config" / "teleop_real.yaml", help="YAML with home_q")
     args = p.parse_args()
-    home = yaml.safe_load((REPO / "config" / "teleop_real.yaml").read_text())["home_q"]
+    home = yaml.safe_load(args.config.read_text())["home_q"]
     text = subprocess.run([sys.executable, str(REPO / "tools" / "check_pose_v2.py")],
                           capture_output=True, text=True).stdout
     plan = []

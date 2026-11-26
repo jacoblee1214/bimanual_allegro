@@ -9,7 +9,8 @@
 #
 # Options: --arms sim|dry|real (dry)   --hands mock|left|right|both (mock)
 #          --duration S (60)           --no-rviz
-#          --config FILE (config/teleop_real.yaml; config/teleop_same_15cm.yaml: 1:1 within 15 cm)
+#          --config FILE (config/teleop_real.yaml; teleop_same_15cm.yaml: 1:1 within 15 cm;
+#                         teleop_center.yaml: hands 0.4 m apart, 1:1 within 20 cm)
 #          --arm-speed RAD_PER_S (the config's)
 #          --show none|rps (none)      --rps-mode fair|reader (fair)   V sign 1 s: play; keys G, M
 # Arms: the limits come from the config and are printed before the start;
@@ -20,7 +21,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,18p "$0"; exit 2; }
+[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,19p "$0"; exit 2; }
 TAG="$1"; shift
 ARMS=dry HANDS=mock DURATION=60 RVIZ=true SHOW=none RPS_MODE=fair CONFIG=config/teleop_real.yaml ARM_SPEED=
 while [ $# -gt 0 ]; do
@@ -79,7 +80,8 @@ if [ "$ARMS" != sim ]; then
     echo "$POSE" > "$LOG/check_pose.txt"
     STARTS="$(echo "$POSE" | python3 -c '
 import re, sys
-HOME = {"left": [-0.4, 11.7, -0.1, 68.1, 180.0, 29.8, 0.0], "right": [-15.3, 12.2, 16.7, 68.0, 181.1, 30.0, 176.0]}
+import math, yaml
+HOME = {s: [math.degrees(v) for v in q] for s, q in yaml.safe_load(open(sys.argv[1]))["home_q"].items()}
 text = sys.stdin.read()
 for side in ("left", "right"):
     m = re.search(side + r": state (\d+), error (\d+).*?joints deg\s+\[([^\]]*)\].*?-> (\S+)", text, re.S)
@@ -88,20 +90,20 @@ for side in ("left", "right"):
     home = max(abs(a - b) for a, b in zip(q, HOME[side])) < 2.0
     where = "READY" if m.group(4) == "READY" else "HOME" if home else "no"
     print(" ", side, f"error {m.group(2)}", where if m.group(2) == "0" else "no")
-')"
+' "$CONFIG")"
     echo "$STARTS"
   }
   read_arms
   if echo "$STARTS" | grep -qvE " (READY|HOME)$" && ! echo "$STARTS" | grep -qE "unread|error [1-9]"; then
-    echo "  The arms are not at the home pose (a run ended there?). Plan:"
-    "$ARM_PY" tools/home_arms.py | sed "s/^/    /"
-    read -r -p "  Type 'home' to move both arms to the home pose at 10 deg/s: " ANSWER
+    echo "  The arms are not at this config's start pose. Plan:"
+    "$ARM_PY" tools/home_arms.py --config "$CONFIG" | sed "s/^/    /"
+    read -r -p "  Type 'home' to move both arms there at 10 deg/s, left first: " ANSWER
     [ "$ANSWER" = home ] || { echo "not started"; exit 1; }
-    "$ARM_PY" tools/home_arms.py --enable | grep -E "done|home|failed" | sed "s/^/    /"
+    "$ARM_PY" tools/home_arms.py --config "$CONFIG" --enable | grep -E "done|home|failed" | sed "s/^/    /"
     read_arms
   fi
   if echo "$STARTS" | grep -qvE " (READY|HOME)$"; then
-    echo "[!] both arms must be at READY or at the home pose, with no error; not starting"; exit 1
+    echo "[!] both arms must be at READY or at the config's start pose, with no error; not starting"; exit 1
   fi
 fi
 
