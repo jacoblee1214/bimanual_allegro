@@ -120,7 +120,7 @@ echo "[4/4] start: show both hands to the camera (logs in $LOG)"
   echo "[!] no wrist pose in 30 s; stopping"; kill -INT "$(cat "$LOG/launch.pid")" ) & WATCH=$!
 trap 'kill -TERM $REC $WATCH 2>/dev/null || true' EXIT
 STATUS=0
-bash -c 'echo $$ > "$1/launch.pid"; shift; exec ros2 launch "$@"' _ "$LOG" launch/teleop_real_v2.launch.py show:="$SHOW" rps_mode:="$RPS_MODE" config:="$CONFIG" arm_speed:="$ARM_SPEED" \
+bash -c 'echo $$ > "$1/launch.pid"; shift; exec ros2 launch "$@"' _ "$LOG" launch/teleop_real_v2.launch.py show:="$SHOW" rps_mode:="$RPS_MODE" config:="$CONFIG" ${ARM_SPEED:+arm_speed:="$ARM_SPEED"} \
   arms:="$([ "$ARMS" = real ] && echo true || echo "$ARMS")" hands:="$HANDS" camera:="$LOG/ego_camera.yaml" \
   duration:="$DURATION" rviz:="$RVIZ" hand_repo:="$HAND_REPO" 2>&1 | tee "$LOG/launch.log" | grep --line-buffered -vE "pal_statistics|FIFO RT" || STATUS=$?
 kill -TERM $REC $WATCH 2>/dev/null || true
