@@ -108,3 +108,30 @@ Conclusion: no estimate is good enough for 1:1 rotation on this clip, and the cl
 limited by where the hands are in the picture. The camera has to look further down (the
 wrists at the picture's middle would need about 25 degrees more pitch for hands held where
 they were) before the estimates can be judged.
+
+## Clip ego_turns2 (2026-11-26): the camera looking further down
+
+Hands whole and near the middle of the picture (wrist at 0.57 to 0.82 of the height), found
+in 96 to 100 % of the frames of every phase (ego_turns: 20 to 100 %). In the grasp phase the
+palms faced the camera. Sensor palm plane, step between frames p95 in degrees / steps over 20
+degrees, left, right:
+
+| phase | sensor, as it is | world landmarks | sensor + half-turn fix + steps over 20 deg held |
+|---|---|---|---|
+| still | 1.3 / 0, 0.9 / 0 | 6.1 / 0, 4.3 / 0 | 1.3, 0.9 |
+| bend | 8.1 / 3, 6.1 / 1 | 23.4 / 20, 24.6 / 16 | 7.5, 6.4 |
+| turn | 29.0 / 18, 11.8 / 8 | 34.0 / 27, 25.1 / 18 | 11.1, 8.0 |
+| flip | 31.5 / 24, 32.7 / 28 | 43.0 / 31, 32.8 / 32 | 16.9, 12.2 |
+| grasp | 46.9 / 36, 43.9 / 29 | 23.7 / 25, 25.9 / 28 | 23.5, 18.6 |
+
+- With the hands in view the sensor plane is the best estimate in every phase but grasp.
+- The fix (take the half turn about the fingers when it is at least 30 degrees closer to the
+  last frame, then hold any step over 20 degrees per frame for up to 0.3 s) holds 4 to 5 % of
+  the frames. It also works against real flips: the palm changed side 2 times per hand in the
+  flip phase where three flips (6 changes) were made.
+- While the fingers close, the orientation is at its worst (p95 19 to 24 degrees even after
+  the fix): curled fingers cover the palm, palms up. A wrist that shakes while the hand closes
+  cannot grasp.
+
+Reading: bending and turning the hand can be followed now. A full palm flip and rotation
+while the hand is closed cannot, with this estimate.
