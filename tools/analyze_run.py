@@ -34,10 +34,10 @@ for side in ("left", "right"):
     t, q = arr(f"{side}_cmd")
     if len(t):
         d = np.degrees(np.abs(q - q[0]).max(0)); sp = np.abs(np.diff(q, axis=0)).max(1) / np.maximum(np.diff(t), 1e-3)
-        print(f"  arm cmd: max offset from start deg {d.round(1).tolist()} (box 17.2), speed p95/max {np.percentile(sp,95):.2f}/{np.percentile(sp,99.9):.2f} rad/s")
+        print(f"  arm cmd: max offset from start deg {d.round(1).tolist()}, speed p95/max {np.percentile(sp,95):.2f}/{np.percentile(sp,99.9):.2f} rad/s")
         from arm.ik_v2 import DiffIK
         ik = DiffIK(); p = np.array([ik.fk(x)[0] for x in q[::10]]); 
-        print(f"  arm EEF: moved up to {1000*np.linalg.norm(p-p[0],axis=1).max():.0f} mm from start (cap 70); range mm xyz {(1000*(p.max(0)-p.min(0))).round(0).tolist()}")
+        print(f"  arm EEF: moved up to {1000*np.linalg.norm(p-p[0],axis=1).max():.0f} mm from start; range mm xyz {(1000*(p.max(0)-p.min(0))).round(0).tolist()}")
     t, h = arr(f"{side}_hand_cmd")
     if len(t):
         lim = get_joint_limits(side); lo = np.array([lim[j][0] for j in CONTROLLER_JOINT_ORDER]); hi = np.array([lim[j][1] for j in CONTROLLER_JOINT_ORDER])
