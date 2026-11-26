@@ -13,13 +13,14 @@
 #          --arm-speed RAD_PER_S (the config's)
 #          --show none|rps (none)      --rps-mode fair|reader (fair)   V sign 1 s: play; keys G, M
 # Arms: the limits come from the config and are printed before the start;
-# they start from READY or from the home pose. Hands: 3 rad/s per joint. Ctrl-C stops everything.
+# they start from READY or from the home pose; if they are elsewhere the script offers to bring
+# them home (tools/home_arms.py). Hands: 3 rad/s per joint. Ctrl-C stops everything.
 # Logs: data/runs/<tag>/ (launch.log, record.csv, ego_camera.yaml, check_*.txt).
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,17p "$0"; exit 2; }
+[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,18p "$0"; exit 2; }
 TAG="$1"; shift
 ARMS=dry HANDS=mock DURATION=60 RVIZ=true SHOW=none RPS_MODE=fair CONFIG=config/teleop_real.yaml ARM_SPEED=
 while [ $# -gt 0 ]; do
@@ -73,9 +74,10 @@ echo "  USB $USB; $(grep -E '^(pitch_down_deg|roll_deg)' "$LOG/ego_camera.yaml" 
 
 echo "[2/4] arms: $ARMS ($LIMITS)"
 if [ "$ARMS" != sim ]; then
-  POSE="$("$ARM_PY" tools/check_pose_v2.py 2>&1)" || true
-  echo "$POSE" > "$LOG/check_pose.txt"
-  STARTS="$(echo "$POSE" | python3 -c '
+  read_arms() {
+    POSE="$("$ARM_PY" tools/check_pose_v2.py 2>&1)" || true
+    echo "$POSE" > "$LOG/check_pose.txt"
+    STARTS="$(echo "$POSE" | python3 -c '
 import re, sys
 HOME = {"left": [-0.4, 11.7, -0.1, 68.1, 180.0, 29.8, 0.0], "right": [-15.3, 12.2, 16.7, 68.0, 181.1, 30.0, 176.0]}
 text = sys.stdin.read()
@@ -87,7 +89,17 @@ for side in ("left", "right"):
     where = "READY" if m.group(4) == "READY" else "HOME" if home else "no"
     print(" ", side, f"error {m.group(2)}", where if m.group(2) == "0" else "no")
 ')"
-  echo "$STARTS"
+    echo "$STARTS"
+  }
+  read_arms
+  if echo "$STARTS" | grep -qvE " (READY|HOME)$" && ! echo "$STARTS" | grep -qE "unread|error [1-9]"; then
+    echo "  The arms are not at the home pose (a run ended there?). Plan:"
+    "$ARM_PY" tools/home_arms.py | sed "s/^/    /"
+    read -r -p "  Type 'home' to move both arms to the home pose at 10 deg/s: " ANSWER
+    [ "$ANSWER" = home ] || { echo "not started"; exit 1; }
+    "$ARM_PY" tools/home_arms.py --enable | grep -E "done|home|failed" | sed "s/^/    /"
+    read_arms
+  fi
   if echo "$STARTS" | grep -qvE " (READY|HOME)$"; then
     echo "[!] both arms must be at READY or at the home pose, with no error; not starting"; exit 1
   fi
