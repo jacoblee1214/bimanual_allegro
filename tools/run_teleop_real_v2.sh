@@ -9,17 +9,19 @@
 #
 # Options: --arms sim|dry|real (dry)   --hands mock|left|right|both (mock)
 #          --duration S (60)           --no-rviz
+#          --config FILE (config/teleop_real.yaml; config/teleop_same_15cm.yaml: 1:1 within 15 cm)
+#          --arm-speed RAD_PER_S (the config's)
 #          --show none|rps (none)      --rps-mode fair|reader (fair)   V sign 1 s: play; keys G, M
-# Arms: radius 7 cm, x0.5, 0.3 rad/s, joints within 0.3 rad of the start (R5's settings);
+# Arms: the limits come from the config and are printed before the start;
 # they start from READY or from the home pose. Hands: 3 rad/s per joint. Ctrl-C stops everything.
 # Logs: data/runs/<tag>/ (launch.log, record.csv, ego_camera.yaml, check_*.txt).
 set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,15p "$0"; exit 2; }
+[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,17p "$0"; exit 2; }
 TAG="$1"; shift
-ARMS=dry HANDS=mock DURATION=60 RVIZ=true SHOW=none RPS_MODE=fair
+ARMS=dry HANDS=mock DURATION=60 RVIZ=true SHOW=none RPS_MODE=fair CONFIG=config/teleop_real.yaml ARM_SPEED=
 while [ $# -gt 0 ]; do
   case "$1" in
     --arms) ARMS="$2"; shift ;;
@@ -27,6 +29,8 @@ while [ $# -gt 0 ]; do
     --duration) DURATION="$2"; shift ;;
     --no-rviz) RVIZ=false ;;
     --show) SHOW="$2"; shift ;;
+    --config) CONFIG="$2"; shift ;;
+    --arm-speed) ARM_SPEED="$2"; shift ;;
     --rps-mode) RPS_MODE="$2"; shift ;;
     *) echo "[!] unknown option $1"; exit 2 ;;
   esac
@@ -38,6 +42,13 @@ case "$HANDS" in mock) REAL_HANDS=() ;; left|right) REAL_HANDS=("$HANDS") ;; bot
   *) echo "[!] --hands must be mock, left, right or both"; exit 2 ;; esac
 
 HAND_REPO="${ALLEGRO_TELEOP_DIR:-$HOME/allegro_vision_teleop}"
+CONFIG="$(realpath "$CONFIG")"
+LIMITS="$(python3 -c '
+import sys, yaml
+c = yaml.safe_load(open(sys.argv[1])); f, b = c["follow"], c["bridge"]
+v = float(sys.argv[2]) if sys.argv[2] else b["max_joint_speed"]
+print(f"radius {f[\"radius\"] * 100:.0f} cm, x{f[\"scale\"]}, {v} rad/s, joints within {b[\"max_excursion\"]} rad of the start")
+' "$CONFIG" "$ARM_SPEED")"
 unset CONDA_EXE _CONDA_EXE _CONDA_ROOT CONDA_PREFIX CONDA_DEFAULT_ENV PYTHONPATH VIRTUAL_ENV
 set +u
 source /opt/ros/jazzy/setup.bash
@@ -60,7 +71,7 @@ print(d[0].get_info(rs.camera_info.usb_type_descriptor) if len(d) else "none")')
   || { cat "$LOG/camera_tilt.txt"; echo "[!] could not measure the camera tilt"; exit 1; }
 echo "  USB $USB; $(grep -E '^(pitch_down_deg|roll_deg)' "$LOG/ego_camera.yaml" | tr '\n' ' ')(R5-R7: pitch 30)"
 
-echo "[2/4] arms: $ARMS"
+echo "[2/4] arms: $ARMS ($LIMITS)"
 if [ "$ARMS" != sim ]; then
   POSE="$("$ARM_PY" tools/check_pose_v2.py 2>&1)" || true
   echo "$POSE" > "$LOG/check_pose.txt"
@@ -95,7 +106,7 @@ done
 
 if [ "$ARMS" = real ] || [ ${#REAL_HANDS[@]} -gt 0 ]; then
   echo
-  [ "$ARMS" = real ] && echo "  REAL ARMS WILL MOVE for $DURATION s (radius 7 cm, x0.5, 0.3 rad/s, joints within 0.3 rad)."
+  [ "$ARMS" = real ] && echo "  REAL ARMS WILL MOVE for $DURATION s ($LIMITS)."
   [ ${#REAL_HANDS[@]} -gt 0 ] && echo "  REAL HAND(S) WILL MOVE: ${REAL_HANDS[*]}. The fingers straighten as the driver starts, then follow yours."
   echo "  Keep the emergency stop in reach and clear the space around the hands."
   read -r -p "  Type 'yes' to start: " ANSWER
@@ -109,7 +120,7 @@ echo "[4/4] start: show both hands to the camera (logs in $LOG)"
   echo "[!] no wrist pose in 30 s; stopping"; kill -INT "$(cat "$LOG/launch.pid")" ) & WATCH=$!
 trap 'kill -TERM $REC $WATCH 2>/dev/null || true' EXIT
 STATUS=0
-bash -c 'echo $$ > "$1/launch.pid"; shift; exec ros2 launch "$@"' _ "$LOG" launch/teleop_real_v2.launch.py show:="$SHOW" rps_mode:="$RPS_MODE" \
+bash -c 'echo $$ > "$1/launch.pid"; shift; exec ros2 launch "$@"' _ "$LOG" launch/teleop_real_v2.launch.py show:="$SHOW" rps_mode:="$RPS_MODE" config:="$CONFIG" arm_speed:="$ARM_SPEED" \
   arms:="$([ "$ARMS" = real ] && echo true || echo "$ARMS")" hands:="$HANDS" camera:="$LOG/ego_camera.yaml" \
   duration:="$DURATION" rviz:="$RVIZ" hand_repo:="$HAND_REPO" 2>&1 | tee "$LOG/launch.log" | grep --line-buffered -vE "pal_statistics|FIFO RT" || STATUS=$?
 kill -TERM $REC $WATCH 2>/dev/null || true

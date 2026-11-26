@@ -22,6 +22,8 @@ Arguments:
   source:=realsense | clip:<dir>      camera:=<ego camera YAML> (R_CB; default config/ego_camera.yaml)
   duration:=60 (s; everything stops then)    gpu:=true    rviz:=true
   hand_repo:=~/allegro_vision_teleop
+  config:=config/teleop_real.yaml   speeds, radius, scale, joint box (config/teleop_same_15cm.yaml: 1:1)
+  arm_speed:=<rad/s>         overrides the config's arm joint speed, follow node and bridge
   show:=none | rps           rps: show/rps_node.py sits between the teleop and the bridges and plays
                              rock-paper-scissors (docs/11_ces_show_rps.md);  rps_mode:=fair | reader
 """
@@ -53,7 +55,9 @@ def _setup(context):
     arm_python = str(REPO / ".venv-arm" / "bin" / "python")
     vision_python = str(REPO / ".venv-vision" / "bin" / "python")
     layout = yaml.safe_load((REPO / "config" / "arms_sim.yaml").read_text())
-    cfg = yaml.safe_load((REPO / "config" / "teleop_real.yaml").read_text())
+    cfg = yaml.safe_load(Path(os.path.expanduser(arg["config"])).read_text())
+    if arg["arm_speed"]:
+        cfg["follow"]["max_joint_speed"] = cfg["bridge"]["max_joint_speed"] = float(arg["arm_speed"])
     hand_ips = yaml.safe_load((REPO / "config" / "robots.local.yaml").read_text()).get("allegro", {}) if real_hands else {}
     arm_urdf = (REPO / "data" / "models" / "xarm7.urdf").read_text()
     follow = cfg["follow"]
@@ -162,6 +166,9 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument("duration", default_value="60", description="s; everything stops then"),
         DeclareLaunchArgument("gpu", default_value="true", description="MediaPipe on the NVIDIA GPU"),
         DeclareLaunchArgument("rviz", default_value="true", description="open RViz"),
+        DeclareLaunchArgument("config", default_value=str(REPO / "config" / "teleop_real.yaml"),
+                              description="settings YAML (config/teleop_real.yaml, config/teleop_same_15cm.yaml)"),
+        DeclareLaunchArgument("arm_speed", default_value="", description="rad/s; overrides the config"),
         DeclareLaunchArgument("show", default_value="none", description="none, or rps: rock-paper-scissors"),
         DeclareLaunchArgument("rps_mode", default_value="fair", description="fair or reader"),
         DeclareLaunchArgument("rps_window", default_value="true", description="the scoreboard window"),

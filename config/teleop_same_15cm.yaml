@@ -1,0 +1,16 @@
+# Settings for launch/teleop_real_v2.launch.py config:=...: the arms follow the hands 1:1
+# within 15 cm of the start (docs/12_same_motion.md). Same keys as config/teleop_real.yaml.
+# From the home pose every direction at 15 cm is reachable and no joint moves more than
+# 0.82 rad (tools/eval_reach_from_home.py), so the joint box is 0.9 rad. 25 cm is not
+# reachable from the home pose in 5 or 6 of 26 directions.
+# The joint speed stays at R5's 0.3 rad/s here; raise it per run with arm_speed:=
+# (tools/run_teleop_real_v2.sh --arm-speed), one step at a time.
+
+home_q:
+  left:  [-0.007, 0.204, -0.002, 1.189, 3.142, 0.520, 0.0]
+  right: [-0.267, 0.213, 0.291, 1.187, 3.161, 0.524, 3.072]
+
+follow: {max_joint_speed: 0.3, radius: 0.15, scale: 1.0, joint_box: 0.9}
+bridge: {max_joint_speed: 0.3, max_excursion: 0.9}
+
+hand: {alpha: 0.25, max_joint_speed: 3.0}
