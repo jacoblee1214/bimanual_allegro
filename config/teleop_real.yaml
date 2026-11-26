@@ -1,0 +1,15 @@
+# Settings for launch/teleop_real.launch.py (docs/10_real_teleop_arms_hands.md).
+
+# The arms' home pose, rad: where they rest and where a run starts (user, 2026-11-24).
+# Only used with arms:=sim, to rehearse from the same pose without the robots.
+home_q:
+  left:  [-0.007, 0.204, -0.002, 1.189, 3.142, 0.520, 0.0]
+  right: [-0.267, 0.213, 0.291, 1.187, 3.161, 0.524, 3.072]
+
+# arm/arm_follow_node_v6.py and arm/xarm_bridge_node_v3.py: R5's settings, which passed
+# (docs/results/r5_ego_bimanual_follow.md). The same in every mode, so a rehearsal tests them.
+follow: {max_joint_speed: 0.3, radius: 0.07, scale: 0.5, joint_box: 0.3}
+bridge: {max_joint_speed: 0.3, max_excursion: 0.3}
+
+# hand/hand_bridge_node.py: EMA at 100 Hz, then a speed cap on every finger joint, rad/s.
+hand: {alpha: 0.25, max_joint_speed: 3.0}
