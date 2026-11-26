@@ -47,7 +47,7 @@ LIMITS="$(python3 -c '
 import sys, yaml
 c = yaml.safe_load(open(sys.argv[1])); f, b = c["follow"], c["bridge"]
 v = float(sys.argv[2]) if sys.argv[2] else b["max_joint_speed"]
-print(f"radius {f[\"radius\"] * 100:.0f} cm, x{f[\"scale\"]}, {v} rad/s, joints within {b[\"max_excursion\"]} rad of the start")
+print("radius %.0f cm, x%s, %s rad/s, joints within %s rad of the start" % (f["radius"] * 100, f["scale"], v, b["max_excursion"]))
 ' "$CONFIG" "$ARM_SPEED")"
 unset CONDA_EXE _CONDA_EXE _CONDA_ROOT CONDA_PREFIX CONDA_DEFAULT_ENV PYTHONPATH VIRTUAL_ENV
 set +u
