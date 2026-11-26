@@ -1,0 +1,26 @@
+# config/teleop_center.yaml with the wrist's rotation followed (docs/13_wrist_rotation.md):
+# the EEF turns with the hand, at most 45 degrees from the orientation it starts with.
+# Everything else is teleop_center.yaml's.
+# Settings for launch/teleop_real_v2.launch.py config:=...: the arms start turned inwards,
+# with the two flanges 0.40 m apart like the operator's hands, and follow 1:1 within 20 cm
+# (docs/12_same_motion.md). Same keys as config/teleop_real.yaml, plus hand_gap.
+#
+# home_q is this config's start pose (rad): flange at x 0.35, y -/+0.29, z 0.35 m in each
+# base frame, with the home pose's flange orientation, for bases 0.98 m apart
+# (tools/find_center_start.py; the 0.98 m is between the base cables, user, 2026-11-26).
+# From it every direction is reachable at 20 cm (worst 1.6 mm) and at 25 cm (worst 5.8 mm);
+# at 20 cm no joint moves more than 0.85 rad and stays 0.42 rad from its limits.
+home_q:
+  left:  [-0.354, -0.070, -0.383, 0.843, 2.107, 0.878, 0.728]
+  right: [0.069, -0.082, 0.660, 0.845, 4.178, 0.857, 2.436]
+
+follow: {max_joint_speed: 0.3, radius: 0.20, scale: 1.0, joint_box: 0.9, position_only: false, max_rotation_deg: 45}
+bridge: {max_joint_speed: 0.3, max_excursion: 0.9}
+
+# The two flanges never come closer than this, m: each arm's target stops hand_gap / 2 from
+# the middle (arm/arm_follow_node_v7.py --y-range). 0.22 is a guess at the room two Allegro
+# hands need side by side; it has not been measured on the robot.
+base_distance: 0.98
+hand_gap: 0.22
+
+hand: {alpha: 0.25, max_joint_speed: 3.0}

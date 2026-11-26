@@ -74,7 +74,9 @@ def _setup(context):
         x, y, z = (str(v) for v in base["base_xyz"])
         roll, pitch, yaw = (str(v) for v in base["base_rpy"])
         hand_real = side in real_hands
-        follow_cmd = [arm_python, str(REPO / "arm" / "arm_follow_node_v7.py"), "--position-only",
+        follow_cmd = [arm_python, str(REPO / "arm" / "arm_follow_node_v7.py"),
+                      *(["--position-only"] if follow.get("position_only", True) else []),
+                      *(["--max-rotation", str(follow["max_rotation_deg"])] if "max_rotation_deg" in follow else []),
                       "--max-joint-speed", str(follow["max_joint_speed"]), "--radius", str(follow["radius"]),
                       "--scale", str(follow["scale"]), "--joint-box", str(follow["joint_box"]),
                       "--camera", arg["camera"]]
@@ -138,7 +140,7 @@ def _setup(context):
 
     banner = (f"ARMS {dict(sim='SIM', dry='DRY RUN', true='MOVING')[arg['arms']]}"
               f" / HANDS {'REAL: ' + arg['hands'].upper() if real_hands else 'SIM'}")
-    vision = [vision_python, str(REPO / "demo" / "demo_tracker_node_v2.py"), "--source", arg["source"],
+    vision = [vision_python, str(REPO / "demo" / "demo_tracker_node_v3.py"), "--source", arg["source"],
               "--view", "ego", "--depth", "--fusion", "v3", "--banner", banner]
     if arg["gpu"] == "true":
         vision.append("--gpu")

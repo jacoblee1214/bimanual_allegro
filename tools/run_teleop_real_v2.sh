@@ -10,7 +10,8 @@
 # Options: --arms sim|dry|real (dry)   --hands mock|left|right|both (mock)
 #          --duration S (60)           --no-rviz
 #          --config FILE (config/teleop_real.yaml; teleop_same_15cm.yaml: 1:1 within 15 cm;
-#                         teleop_center.yaml: hands 0.4 m apart, 1:1 within 20 cm)
+#                         teleop_center.yaml: hands 0.4 m apart, 1:1 within 20 cm;
+#                         teleop_center_rot.yaml: the same, and the wrist's rotation is followed)
 #          --arm-speed RAD_PER_S (the config's)
 #          --show none|rps (none)      --rps-mode fair|reader (fair)   V sign 1 s: play; keys G, M
 # Arms: the limits come from the config and are printed before the start;
@@ -21,7 +22,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
-[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,19p "$0"; exit 2; }
+[ $# -ge 1 ] && [[ "$1" != -* ]] || { sed -n 2,20p "$0"; exit 2; }
 TAG="$1"; shift
 ARMS=dry HANDS=mock DURATION=60 RVIZ=true SHOW=none RPS_MODE=fair CONFIG=config/teleop_real.yaml ARM_SPEED=
 while [ $# -gt 0 ]; do
@@ -128,7 +129,7 @@ if [ "$ARMS" = real ] || [ ${#REAL_HANDS[@]} -gt 0 ]; then
 fi
 
 echo "[4/4] start: show both hands to the camera (logs in $LOG)"
-"$ARM_PY" tools/record_run_v2.py > "$LOG/record.csv" 2> "$LOG/record.log" & REC=$!
+"$ARM_PY" tools/record_run_v3.py > "$LOG/record.csv" 2> "$LOG/record.log" & REC=$!
 # No wrist pose within 30 s: stop, instead of a run with nothing to follow (dry7b, 2026-11-23).
 ( for _ in $(seq 60); do sleep 0.5; grep -q "_wrist," "$LOG/record.csv" && exit 0; done
   echo "[!] no wrist pose in 30 s; stopping"; kill -INT "$(cat "$LOG/launch.pid")" ) & WATCH=$!
@@ -142,6 +143,8 @@ wait $REC 2>/dev/null || true
 echo
 echo "== summary ($LOG/record.csv)"
 "$ARM_PY" tools/analyze_run.py "$LOG/record.csv" || true
+echo "== wrist orientation"
+"$ARM_PY" tools/analyze_wrist_rotation.py "$LOG/record.csv" || true
 grep -hE "round (starts|over)" "$LOG/launch.log" | sed "s/^.*rps_show\]: /  /" || true
 grep -hE "outside the box [1-9]|controller error|Traceback" "$LOG/launch.log" | tail -n 5 || true
 if ss -tn | grep -q ":502 "; then echo "[!] a hand connection (port 502) is still open: check for a leftover ros2_control_node"; fi
