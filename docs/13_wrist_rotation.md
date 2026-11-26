@@ -75,3 +75,36 @@ Where the fingers point (bending the wrist, turning the hand left and right) is 
 
 The run's log has no images or landmarks, so other estimates of the roll cannot be tried on
 it. `tools/record_ego_turns.py` records a clip with flip, bend, turn and grasp phases for that.
+
+## Clip ego_turns (2026-11-26): four estimates compared, and what spoiled the comparison
+
+`tools/eval_wrist_rotation.py data/clips/ego_turns` (1496 frames; pnp, sensor plane, MediaPipe
+world landmarks, and a hybrid: finger direction from the sensor, roll from the world landmarks).
+Step between consecutive frames, p95 in degrees / steps over 20 degrees:
+
+| phase | hand found L / R | wrist's height in the image (0 top, 1 bottom) | pnp | sensor | world | hybrid |
+|---|---|---|---|---|---|---|
+| still | 20 / 45 % | 0.84 / 0.74 | 58.7 / 9, 26.3 / 7 | 3.6 / 1, 5.4 / 1 | 26.4 / 2, 17.0 / 2 | 31.3 / 3, 17.5 / 2 |
+| flip | 89 / 99 % | 0.81 / 0.74 | 36.6 / 24, 77.9 / 56 | 6.9 / 5, 11.7 / 13 | 12.1 / 7, 16.9 / 14 | 14.3 / 5, 19.7 / 17 |
+| bend | 98 / 98 % | 0.69 / 0.69 | 39.8 / 22, 68.7 / 68 | 18.3 / 14, 148.5 / 26 | 21.7 / 17, 58.8 / 36 | 46.9 / 23, 57.8 / 36 |
+| turn | 100 / 100 % | 0.96 / 0.98 | 39.8 / 37, 70.6 / 52 | 30.5 / 47, 31.0 / 35 | 6.7 / 1, 16.3 / 9 | 24.2 / 41, 24.6 / 24 |
+| grasp | 100 / 100 % | 0.92 / 0.96 | 89.3 / 55, 77.2 / 72 | 91.1 / 40, 19.7 / 13 | 66.3 / 43, 49.3 / 43 | 65.7 / 49, 57.4 / 41 |
+
+(each cell: left, right.)
+
+- The hands are low in the picture throughout, and in the turn and grasp phases the wrist is
+  on the bottom edge (0.92 to 0.98 of the height; the contact sheet shows the wrists cut off).
+  The sensor plane needs the palm's pixels, so there it is the worst (finger direction
+  stepping about 20 degrees); the world landmarks hold up better there.
+- Where the hands are further up (still, flip) the sensor plane is the steadiest: p95 3.6 to
+  11.7 degrees, and PnP is the worst everywhere.
+- All four share steps of 150 to 180 degrees on the same frames. A continuity rule (take the
+  half turn about the fingers if it is at least 30 degrees closer to the last frame) removes
+  some (right hand, bend, sensor: p95 148.5 -> 24.0; left, grasp: 91.1 -> 29.1) and not others.
+- In the turn phase the palms faced the camera, not down, so the phases are not the motions
+  the tool asked for. The clip cannot rank the estimates for a palm-down turn.
+
+Conclusion: no estimate is good enough for 1:1 rotation on this clip, and the clip itself is
+limited by where the hands are in the picture. The camera has to look further down (the
+wrists at the picture's middle would need about 25 degrees more pitch for hands held where
+they were) before the estimates can be judged.
