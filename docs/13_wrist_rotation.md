@@ -54,3 +54,24 @@ ratios are a weak measurement.
 3. Whether the robot's hand at the start pose points the way the operator's hand does. The
    mapping is relative: the EEF turns about the same world axes as the hand, starting from
    whatever orientation the robot's hand has.
+
+## Run r1 (2026-11-26): deliberate turns, arms simulated
+
+The camera where it is now, hands 0.33 to 0.35 m away, depth on 90 to 100 % of the wrist poses.
+
+| | left | right |
+|---|---|---|
+| frames with the hand found | 568 of 1646 (35 %) | 709 of 1646 (43 %) |
+| gaps over 0.3 s | 5 (0.8 to 2.1 s) | 3 (0.3 to 1.9 s) |
+| orientation step between frames, p50 / p95 | 0.9 / 16.0 deg | 1.1 / 49.8 deg |
+| steps over 20 degrees | 17 | 67 |
+| wrist samples rejected by the gate | 47 | 107 |
+
+Across the big steps the finger direction stays (dot product of the palm frame's finger axis
+before and after: 0.98, 0.99) while the palm normal and the side axis turn by 50 to 60
+degrees. So the jumps are a roll about the fingers: the sensor's palm plane does not give the
+roll reliably while the hand is being flipped, and that is also when the hand is lost.
+Where the fingers point (bending the wrist, turning the hand left and right) is steady.
+
+The run's log has no images or landmarks, so other estimates of the roll cannot be tried on
+it. `tools/record_ego_turns.py` records a clip with flip, bend, turn and grasp phases for that.
